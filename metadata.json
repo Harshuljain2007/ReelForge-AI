@@ -1,0 +1,8 @@
+{
+  "name": "ReelForge AI",
+  "description": "AI vertical video production suite for creating Instagram Reels and YouTube Shorts with consistent 2D and 3D characters, natural Hinglish voiceovers, motion graphics, and watermark-free 1080p MP4 exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

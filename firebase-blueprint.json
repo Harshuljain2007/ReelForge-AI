@@ -1,0 +1,534 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Studio workspace profile for an authenticated ReelForge AI user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "photoUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["Creator", "Studio Pro", "Production Team"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "photoUrl", "plan", "createdAt", "updatedAt"]
+    },
+    "UserPrivateAccount": {
+      "title": "UserPrivateAccount",
+      "description": "Isolated PII account record containing user email.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "UsageSummary": {
+      "title": "UsageSummary",
+      "description": "Credits and generation counters for a user workspace.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "creditsRemaining": {
+          "type": "number"
+        },
+        "creditsTotal": {
+          "type": "number"
+        },
+        "projectsCount": {
+          "type": "number"
+        },
+        "exportsCount": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "creditsRemaining",
+        "creditsTotal",
+        "projectsCount",
+        "exportsCount",
+        "updatedAt"
+      ]
+    },
+    "ReelProject": {
+      "title": "ReelProject",
+      "description": "Vertical 9:16 AI video production project owned by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["auto", "studio"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["English", "Hindi", "Hinglish"]
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "Documentary",
+            "Conversational",
+            "Educational",
+            "High-Energy",
+            "Editorial"
+          ]
+        },
+        "durationSeconds": {
+          "type": "number"
+        },
+        "visualStyle": {
+          "type": "string",
+          "enum": ["2D", "3D"]
+        },
+        "characterId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "voiceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "aspectRatio": {
+          "type": "string",
+          "enum": ["9:16"]
+        },
+        "resolution": {
+          "type": "string",
+          "enum": ["1080p"]
+        },
+        "musicTrack": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "captionStyle": {
+          "type": "string",
+          "enum": [
+            "Bold Kinetic",
+            "Minimal Lower Third",
+            "Word Highlight",
+            "Clean Editorial"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Draft", "Planned", "Demo Ready", "Needs Setup"]
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "hook": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "cta": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "sceneCount": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "title",
+        "topic",
+        "mode",
+        "language",
+        "tone",
+        "durationSeconds",
+        "visualStyle",
+        "characterId",
+        "voiceId",
+        "aspectRatio",
+        "resolution",
+        "musicTrack",
+        "captionStyle",
+        "status",
+        "thumbnailUrl",
+        "hook",
+        "cta",
+        "sceneCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProjectScene": {
+      "title": "ProjectScene",
+      "description": "Ordered scene unit belonging to a ReelProject.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sceneNumber": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "narration": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "visualDescription": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "characterDescription": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "cameraMovement": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "backgroundDescription": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "textOverlays": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "transition": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "soundEffect": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "previewImageUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "projectId",
+        "ownerId",
+        "sceneNumber",
+        "duration",
+        "narration",
+        "visualDescription",
+        "characterDescription",
+        "cameraMovement",
+        "backgroundDescription",
+        "textOverlays",
+        "transition",
+        "soundEffect",
+        "previewImageUrl",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CharacterProfile": {
+      "title": "CharacterProfile",
+      "description": "Reusable 2D or 3D character reference owned by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "style": {
+          "type": "string",
+          "enum": ["2D", "3D"]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "referenceImageUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "expressions": {
+          "type": "array"
+        },
+        "poses": {
+          "type": "array"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "name",
+        "style",
+        "description",
+        "referenceImageUrl",
+        "expressions",
+        "poses",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "GenerationJob": {
+      "title": "GenerationJob",
+      "description": "Background generation job tracking per project.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["script", "character", "image", "video", "voice", "render"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "running", "completed", "failed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "ownerId", "projectId", "stage", "status", "createdAt", "updatedAt"]
+    },
+    "ExportRecord": {
+      "title": "ExportRecord",
+      "description": "Watermark-free 1080x1920 MP4 export history entry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "resolution": {
+          "type": "string",
+          "enum": ["1080x1920"]
+        },
+        "fps": {
+          "type": "number"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["mp4"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "completed", "failed"]
+        },
+        "outputUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "projectId",
+        "resolution",
+        "fps",
+        "format",
+        "status",
+        "outputUrl",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {"$ref": "#/entities/UserProfile"},
+      "description": "Authenticated creator workspace profile."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": {"$ref": "#/entities/UserPrivateAccount"},
+      "description": "Isolated PII email record readable and writable only by owner."
+    },
+    "/usage/{userId}": {
+      "schema": {"$ref": "#/entities/UsageSummary"},
+      "description": "User export credits and project usage metrics."
+    },
+    "/projects/{projectId}": {
+      "schema": {"$ref": "#/entities/ReelProject"},
+      "description": "User-owned 9:16 Reel production projects."
+    },
+    "/projects/{projectId}/scenes/{sceneId}": {
+      "schema": {"$ref": "#/entities/ProjectScene"},
+      "description": "Ordered scenes belonging to a parent ReelProject."
+    },
+    "/characters/{characterId}": {
+      "schema": {"$ref": "#/entities/CharacterProfile"},
+      "description": "Reusable 2D and 3D character assets."
+    },
+    "/generationJobs/{jobId}": {
+      "schema": {"$ref": "#/entities/GenerationJob"},
+      "description": "Background generation job tracking per project."
+    },
+    "/exportRecords/{exportId}": {
+      "schema": {"$ref": "#/entities/ExportRecord"},
+      "description": "MP4 export tracking records per project."
+    }
+  }
+}

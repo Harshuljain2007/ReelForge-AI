@@ -1,0 +1,397 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'photoUrl', 'plan', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'photoUrl', 'plan', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1 && data.uid.size() <= 128
+        && data.uid == userId
+        && data.uid == request.auth.uid
+        && data.displayName is string
+        && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && data.photoUrl is string
+        && data.photoUrl.size() <= 500
+        && data.plan in ['Creator', 'Studio Pro', 'Production Team']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateAccount(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1 && data.uid.size() <= 128
+        && data.uid == userId
+        && data.uid == request.auth.uid
+        && data.email is string
+        && data.email.size() >= 3 && data.email.size() <= 160
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUsageSummary(data, userId) {
+      return data.keys().hasAll(['ownerId', 'creditsRemaining', 'creditsTotal', 'projectsCount', 'exportsCount', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'creditsRemaining', 'creditsTotal', 'projectsCount', 'exportsCount', 'updatedAt'])
+        && data.ownerId is string
+        && data.ownerId.size() >= 1 && data.ownerId.size() <= 128
+        && data.ownerId == userId
+        && data.ownerId == request.auth.uid
+        && data.creditsTotal is number && data.creditsTotal >= 1 && data.creditsTotal <= 10000
+        && data.creditsRemaining is number && data.creditsRemaining >= 0 && data.creditsRemaining <= data.creditsTotal
+        && data.projectsCount is number && data.projectsCount >= 0 && data.projectsCount <= 10000
+        && data.exportsCount is number && data.exportsCount >= 0 && data.exportsCount <= 10000
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProject(data, projectId) {
+      return data.keys().hasAll([
+        'id', 'ownerId', 'title', 'topic', 'mode', 'language', 'tone',
+        'durationSeconds', 'visualStyle', 'characterId', 'voiceId',
+        'aspectRatio', 'resolution', 'musicTrack', 'captionStyle',
+        'status', 'thumbnailUrl', 'hook', 'cta', 'sceneCount',
+        'createdAt', 'updatedAt'
+      ])
+        && data.keys().hasOnly([
+          'id', 'ownerId', 'title', 'topic', 'mode', 'language', 'tone',
+          'durationSeconds', 'visualStyle', 'characterId', 'voiceId',
+          'aspectRatio', 'resolution', 'musicTrack', 'captionStyle',
+          'status', 'thumbnailUrl', 'hook', 'cta', 'sceneCount',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == projectId
+        && data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 140
+        && data.topic is string && data.topic.size() >= 1 && data.topic.size() <= 600
+        && data.mode in ['auto', 'studio']
+        && data.language in ['English', 'Hindi', 'Hinglish']
+        && data.tone in ['Documentary', 'Conversational', 'Educational', 'High-Energy', 'Editorial']
+        && data.durationSeconds is number && data.durationSeconds >= 5 && data.durationSeconds <= 180
+        && data.visualStyle in ['2D', '3D']
+        && data.characterId is string && data.characterId.size() <= 128
+        && data.voiceId is string && data.voiceId.size() >= 1 && data.voiceId.size() <= 128
+        && data.aspectRatio == '9:16'
+        && data.resolution == '1080p'
+        && data.musicTrack is string && data.musicTrack.size() >= 1 && data.musicTrack.size() <= 120
+        && data.captionStyle in ['Bold Kinetic', 'Minimal Lower Third', 'Word Highlight', 'Clean Editorial']
+        && data.status in ['Draft', 'Planned', 'Demo Ready', 'Needs Setup']
+        && data.thumbnailUrl is string && data.thumbnailUrl.size() <= 500
+        && data.hook is string && data.hook.size() <= 500
+        && data.cta is string && data.cta.size() <= 500
+        && data.sceneCount is number && data.sceneCount >= 0 && data.sceneCount <= 30
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidScene(data, projectId, sceneId) {
+      return data.keys().hasAll([
+        'id', 'projectId', 'ownerId', 'sceneNumber', 'duration',
+        'narration', 'visualDescription', 'characterDescription',
+        'cameraMovement', 'backgroundDescription', 'textOverlays',
+        'transition', 'soundEffect', 'previewImageUrl',
+        'createdAt', 'updatedAt'
+      ])
+        && data.keys().hasOnly([
+          'id', 'projectId', 'ownerId', 'sceneNumber', 'duration',
+          'narration', 'visualDescription', 'characterDescription',
+          'cameraMovement', 'backgroundDescription', 'textOverlays',
+          'transition', 'soundEffect', 'previewImageUrl',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == sceneId
+        && data.projectId is string && data.projectId == projectId
+        && data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && data.sceneNumber is number && data.sceneNumber >= 1 && data.sceneNumber <= 30
+        && data.duration is number && data.duration >= 1 && data.duration <= 60
+        && data.narration is string && data.narration.size() <= 1200
+        && data.visualDescription is string && data.visualDescription.size() <= 600
+        && data.characterDescription is string && data.characterDescription.size() <= 400
+        && data.cameraMovement is string && data.cameraMovement.size() <= 200
+        && data.backgroundDescription is string && data.backgroundDescription.size() <= 400
+        && data.textOverlays is string && data.textOverlays.size() <= 200
+        && data.transition is string && data.transition.size() <= 120
+        && data.soundEffect is string && data.soundEffect.size() <= 200
+        && data.previewImageUrl is string && data.previewImageUrl.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCharacter(data, characterId) {
+      return data.keys().hasAll([
+        'id', 'ownerId', 'name', 'style', 'description',
+        'referenceImageUrl', 'expressions', 'poses',
+        'createdAt', 'updatedAt'
+      ])
+        && data.keys().hasOnly([
+          'id', 'ownerId', 'name', 'style', 'description',
+          'referenceImageUrl', 'expressions', 'poses',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == characterId
+        && data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+        && data.style in ['2D', '3D']
+        && data.description is string && data.description.size() <= 600
+        && data.referenceImageUrl is string && data.referenceImageUrl.size() <= 500
+        && data.expressions is list && data.expressions.size() >= 1 && data.expressions.size() <= 12 && data.expressions[0] is string
+        && data.poses is list && data.poses.size() >= 1 && data.poses.size() <= 12 && data.poses[0] is string
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidGenerationJob(data, jobId) {
+      return data.keys().hasAll(['id', 'ownerId', 'projectId', 'stage', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'ownerId', 'projectId', 'stage', 'status', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id == jobId
+        && data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && isValidId(data.projectId)
+        && data.stage in ['script', 'character', 'image', 'video', 'voice', 'render']
+        && data.status in ['queued', 'running', 'completed', 'failed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidExportRecord(data, exportId) {
+      return data.keys().hasAll(['id', 'ownerId', 'projectId', 'resolution', 'fps', 'format', 'status', 'outputUrl', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'ownerId', 'projectId', 'resolution', 'fps', 'format', 'status', 'outputUrl', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id == exportId
+        && data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && isValidId(data.projectId)
+        && data.resolution == '1080x1920'
+        && data.fps == 30
+        && data.format == 'mp4'
+        && data.status in ['queued', 'completed', 'failed']
+        && data.outputUrl is string && data.outputUrl.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // 1. Users (owner-only profile)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && existing().uid == request.auth.uid
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoUrl', 'plan', 'updatedAt']);
+      allow delete: if false;
+
+      // Isolated PII account record
+      match /private/{docId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(docId) && docId == 'account' && request.auth.uid == userId;
+        allow list: if false;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(docId)
+          && docId == 'account'
+          && isValidUserPrivateAccount(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(docId)
+          && docId == 'account'
+          && isValidUserPrivateAccount(incoming(), userId)
+          && existing().uid == request.auth.uid
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+        allow delete: if false;
+      }
+    }
+
+    // 2. Usage and Credits
+    match /usage/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUsageSummary(incoming(), userId)
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUsageSummary(incoming(), userId)
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['creditsRemaining', 'creditsTotal', 'projectsCount', 'exportsCount', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // 3. Projects
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && isValidId(projectId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(projectId)
+        && isValidProject(incoming(), projectId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(projectId)
+        && isValidProject(incoming(), projectId)
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'topic', 'mode', 'language', 'tone', 'durationSeconds',
+          'visualStyle', 'characterId', 'voiceId', 'musicTrack',
+          'captionStyle', 'status', 'thumbnailUrl', 'hook', 'cta',
+          'sceneCount', 'updatedAt'
+        ]);
+      allow delete: if isVerifiedUser() && isValidId(projectId) && existing().ownerId == request.auth.uid;
+
+      // 4. Scenes Subcollection (Master Gate checks parent project ownership)
+      match /scenes/{sceneId} {
+        allow get: if isSignedIn()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && existing().ownerId == request.auth.uid
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && isValidScene(incoming(), projectId, sceneId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/projects/$(projectId))
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+        allow update: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && isValidScene(incoming(), projectId, sceneId)
+          && existing().ownerId == request.auth.uid
+          && incoming().ownerId == existing().ownerId
+          && incoming().projectId == existing().projectId
+          && incoming().id == existing().id
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'sceneNumber', 'duration', 'narration', 'visualDescription',
+            'characterDescription', 'cameraMovement', 'backgroundDescription',
+            'textOverlays', 'transition', 'soundEffect', 'previewImageUrl', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && existing().ownerId == request.auth.uid
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // 5. Characters
+    match /characters/{characterId} {
+      allow get: if isSignedIn() && isValidId(characterId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(characterId)
+        && isValidCharacter(incoming(), characterId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(characterId)
+        && isValidCharacter(incoming(), characterId)
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'style', 'description', 'referenceImageUrl', 'expressions', 'poses', 'updatedAt'
+        ]);
+      allow delete: if isVerifiedUser() && isValidId(characterId) && existing().ownerId == request.auth.uid;
+    }
+
+    // 6. Generation Jobs (terminal state locked)
+    match /generationJobs/{jobId} {
+      allow get: if isSignedIn() && isValidId(jobId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(jobId)
+        && isValidGenerationJob(incoming(), jobId)
+        && incoming().status == 'queued'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/projects/$(incoming().projectId))
+        && get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.ownerId == request.auth.uid;
+      allow update: if isVerifiedUser()
+        && isValidId(jobId)
+        && isValidGenerationJob(incoming(), jobId)
+        && existing().ownerId == request.auth.uid
+        && !(existing().status in ['completed', 'failed'])
+        && incoming().ownerId == existing().ownerId
+        && incoming().projectId == existing().projectId
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // 7. Export Records (terminal state locked)
+    match /exportRecords/{exportId} {
+      allow get: if isSignedIn() && isValidId(exportId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(exportId)
+        && isValidExportRecord(incoming(), exportId)
+        && incoming().status == 'queued'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/projects/$(incoming().projectId))
+        && get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.ownerId == request.auth.uid;
+      allow update: if isVerifiedUser()
+        && isValidId(exportId)
+        && isValidExportRecord(incoming(), exportId)
+        && existing().ownerId == request.auth.uid
+        && !(existing().status in ['completed', 'failed'])
+        && incoming().ownerId == existing().ownerId
+        && incoming().projectId == existing().projectId
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'outputUrl', 'updatedAt']);
+      allow delete: if false;
+    }
+  }
+}
